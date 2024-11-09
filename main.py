@@ -3,16 +3,16 @@
 """
 
 # imports
-import discord
-from discord.ext import commands
 
 import os
-from tinydb import TinyDB, Query
-from discord.ext import commands
 from dotenv import load_dotenv
 import asyncio
 import random
 
+import discord
+from discord.ext import commands
+
+from tinydb import TinyDB, Query, where
 
 from utils import *
 from utils_lang import *
@@ -42,11 +42,10 @@ async def on_ready():
 
     # fix db stuff
     if not db.search(query.func == "compliments"):
-        db.insert({"func": "compliments", "data": []})
+        db.insert({"func": "compliments", "when_empty": "your jar is empty...but it's ok, i love you! <3", "data": []})
     
     if not db.search(query.func == "study"):
         db.insert({"func": "study", "data": {}})
-    
 
 
 
@@ -106,31 +105,34 @@ async def add_compliment(ctx, *, compliment:str):
 
 @client.command()
 async def compliment_me(ctx):
-    this_comp = "no one loves you"
     c_db = db.get(query.func == "compliments")
     c_list = c_db["data"]
+    this_comp = c_db["when_empty"]
     if len(c_list) > 0:
         this_comp = c_list.pop(random.randint(0, len(c_list) - 1))
         db.update({"data": c_list}, query.func == "compliments")
     await ctx.send(this_comp)
 
 @client.command()
-async def add_term(ctx, study_term:str):
+async def change_empty_message(ctx, *, message:str):
+    db.update({"when_empty" : message}, query.func == "compliments")
+    await ctx.send("empty jar message changed :)")
+
+@client.command()
+async def add_term(ctx, *, study_term:str):
     division_index = study_term.index(",")
     term = study_term[0, division_index]
     definition = study_term[division_index + 1, len(study_term)]
-    
     c_db = db.get(query.func == "study")
     s_list = c_db["data"]
-
-    s_list.append({term, definition})
-
+    newTerm = {term, definition}
+    s_list.append(newTerm)
     db.update({"data": s_list}, query.func == "study")
     await ctx.send("added new term: " + study_term)
 
 
 @client.command()
-async def import_terms(ctx, *, text):
+async def import_set(ctx, *, text):
     
     try:
         s_db = db.get(query.func == "study")
@@ -140,8 +142,8 @@ async def import_terms(ctx, *, text):
         await ctx.send("Enter a name for this set!")
         msg = await client.wait_for("message", timeout=60.0, check=check_reply)
         name = msg.content
-        while db.search(query.func == query.name.exists()):
-            await ctx.send("This set already exists, reply `cancel` and use update_terms or choose a new name.")
+        while db.search(where(name).exists()):
+            await ctx.send("This set already exists, choose a new name or reply `cancel` and use add_term or delete_set.")
             msg = await client.wait_for("message", timeout=60.0, check=check_reply)
             name = msg.content
             if name == "cancel":
