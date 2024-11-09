@@ -9,6 +9,8 @@ from tinydb import TinyDB, Query
 from discord.ext import commands
 from dotenv import load_dotenv
 
+from utils_lang import *
+
 # set up json database
 db = TinyDB('db.json')
 
@@ -18,8 +20,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 client = discord.Client(intents=intents)
-
-
 
 
 """
@@ -32,6 +32,8 @@ client = discord.Client(intents=intents)
 @client.event
 async def on_ready():
     print(f'Logged in as {client.user}')
+    await client.change_presence(status=discord.Status.dnd, activity=discord.CustomActivity(name="suffering"))
+
 
 
 # process every new message
@@ -40,17 +42,17 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    msg = message.content
+    msg = message.content.lower()
 
-# COMMANDS
-
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
+    for i in message.mentions:
+        if i.id == client.user.id:
+            await message.channel.send("leave me alone")
 
     if message.content.startswith("kys"):
         await message.channel.send("no because it doesn't take being alive to love life")
+
+# COMMANDS
+
 
 # run the guy
 load_dotenv()
