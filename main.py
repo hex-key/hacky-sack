@@ -37,7 +37,7 @@ client.remove_command("help")
 async def on_ready():
     # confirm signs of life
     print(f'Logged in as {client.user}')
-    await client.change_presence(status=discord.Status.dnd, activity=discord.CustomActivity(name="suffering"))
+    await client.change_presence(status=discord.Status.dnd, activity=discord.CustomActivity(name="murking redcoats"))
 
     # fix db stuff
     if not db.search(query.func == "compliments"):
