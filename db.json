@@ -1,18 +1,1 @@
-{"_default": {
-"1": {"func": "compliments",
-    "when_empty": "haha...i like gay people",
-    "data": []
-},
-"2": {"func": "study",
-    "data":
-        {"bruh": "moment",
-        "gay": "people",
-        "hawk": "tuah",
-        "a": "aaaaa",
-        "hotel": "trivago",
-        "abc": "def"},
-    "bark":
-        {"bruh": "moment",
-        "sigma": "rizzler"}
-    }
-}}
+{"_default": {"1": {"func": "compliments", "when_empty": "haha...i like gay people", "data": []}, "2": {"func": "study", "data": {"bruh": "moment", "gay": "people", "hawk": "tuah", "a": "aaaaa", "hotel": "trivago", "abc": "def"}, "bark": {"bruh": "moment", "sigma": "rizzler"}}, "3": {"func": "tarot", "data": {"fool": "new beginning/risk", "magician": "creation/manipulation", "high priestess": "intuition/secrets", "empress": "growth/impatience", "emperor": "stability/tyranny", "hierophant": "tradition/blind faith", "lovers": "love/conflict", "chariot": "courage/carelessness", "strength": "passion/pride", "hermit": "independence/isolation", "wheel of fortune": "karma/bad luck", "justice": "fairness/guilt", "hanged man": "change/lack of control", "death": "new beginning/grief", "temperance": "patience/fragility", "devil": "temptation/freedom", "tower": "disruption/collapse", "star": "faith/hopelessness", "moon": "mystery/fear", "sun": "light/arrogance", "judgment": "redemption/punishment", "world": "closure/emptiness"}}, "4": {"func": "lang", "enabled": ["es"], "es": {"rojo": "red"}, "fr": {"rouge": "red"}}}}
