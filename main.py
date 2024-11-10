@@ -21,6 +21,7 @@ from utils_lang import *
 db = TinyDB("db.json")
 query = Query()
 
+tarot_db = TinyDB("tarot.json")
 
 # set up discord app intents and shit
 intents = discord.Intents.default()
@@ -84,6 +85,8 @@ async def on_message(message):
 
     await client.process_commands(message)
 
+#FUN/MISC
+
 #ping msg
 @client.command()
 async def ping(ctx):
@@ -95,12 +98,20 @@ async def flip(ctx):
     flip_result = random.choice(sides)
     await ctx.send(flip_result)
 
+@client.command()
+async def tarot(ctx):
+    #tarot_list = tarot_db["data"]
+    tarot_list = [ "Fool", "Magician", "High Priestess", "Empress", "Emperor", "Hierophant", "Lovers", "Chariot", "Strength", "Hermit", "Wheel of Fortune", "Justice", "Hanged Man", "Death", "Temperance", "Devil", "Tower", "Star", "Moon", "Sun", "Judgment", "World" ] 
+    this_card = random.choice(tarot_list)
+    await ctx.send(f"Your card is the {this_card} card!")
+
 #list of commands
 @client.command()
 async def help(ctx):
-    compliment_jar_commands = f"__**COMPLIMENT JAR**__\n`$add_compliment`: adds a compliment to the jar\n`$change_empty_message`: changes the message displayed when jar is empty\n`$compliment_me`: gives you a compliment from the jar\n\n"
-    study_commands = f"__**STUDYING**__\n`$add_term`: adds term to overall list of terms\n`$all_terms`: sends all terms\n`$import_set`: adds group of terms in their own subgroup"
-    await ctx.send(compliment_jar_commands + study_commands)
+    compliment_jar_commands = "__**COMPLIMENT JAR**__\n`$add_compliment`: adds a compliment to the jar\n`$change_empty_message`: changes the message displayed when jar is empty\n`$compliment_me`: gives you a compliment from the jar\n\n"
+    study_commands = "__**STUDYING**__\n`$add_term`: adds term to overall list of terms\n`$all_terms`: sends all terms\n`$import_set`: adds group of terms in their own subgroup\n`$all_sets`: sends list of all sets\n`$quiz_me`: gives you a definition, message back answer to keep going until runs out of terms\n\n"
+    fun_commands = "__**FUN COMMANDS**__\n`$flip`: flips a coin\n`$ping`: shows latency"
+    await ctx.send(compliment_jar_commands + study_commands + fun_commands)
 
 # COMPLIMENT JAR
 
@@ -149,15 +160,25 @@ async def add_term(ctx, *, study_term:str):
     db.update({"data": s_list}, query.func == "study")
     await ctx.send("added new term: " + study_term)
 
+#return all sets
+@client.command()
+async def all_sets(ctx):
+    s_db = db.get(query.func == "study")
+    all_sets_string = "__**SETS**__\n"
+    all_sets = [key for key in s_db.keys() if key != "func"]
+    for set_name in all_sets:
+        all_sets_string += set_name + "\n"
+    await ctx.send(all_sets_string)
+
 #return all terms
 @client.command()
 async def all_terms(ctx, set_name:str="data"):
     s_db = db.get(query.func == "study")
     if set_name in s_db.keys():
         all_terms = s_db[set_name]
-        all_terms_string = ""
+        all_terms_string = "__**" + set_name.upper() + "**__\n"
         for key, value in all_terms.items():
-            all_terms_string += f"**{key}**: {value}\n"
+            all_terms_string += f"`{key}`: {value}\n"
         await ctx.send(all_terms_string)
     else:
         await ctx.send("Set does not exist.")
@@ -195,20 +216,32 @@ async def import_set(ctx, *, text):
 
 #ask questions from the flashcards?
 @client.command()
-async def quiz_me(ctx):
+async def quiz_me(ctx, set_name="data"):
     try:
         c_db = db.get(query.func == "study")
-        s_list = c_db["data"]
-        while len(s_list) > 0:
-            q = random.choice(list(s_list.keys()))
+        s_list = c_db[set_name]
+        print(s_list)
+        num = len(s_list)
+
+        correct = 0
+        idxs = [i for i in range(num)]
+        random.shuffle(idxs)
+        for i in idxs:
+            q = list(s_list.keys())[i]
             await ctx.send(q)
-            msg = await client.wait_for("message", timeout=5.0)
+            def check_reply(m):
+                return m.author == ctx.author and m.channel == ctx.channel
+            msg = await client.wait_for("message", timeout=30.0, check=check_reply)
             a = msg.content
-            if (a==s_list[q]):
+            if (a == s_list[q]):
                 await ctx.send("Your answer was right!")
+                correct += 1
             else:
                 await ctx.send("You're a bum! The correct answer is " + s_list[q])
-            del s_list[q]
+        await ctx.send(f"I have nothing left to ask... You got {correct} out of {num}")
+
+    except KeyError:
+        await ctx.send("Set does not exist.")
     except asyncio.TimeoutError:
         await ctx.send(content="You died rip", reference=ctx.message)
         
